@@ -1,16 +1,32 @@
 #!/usr/bin/python3
 """
-script that reads stdin line by line and computes metrics
+Log parsing
 """
 import sys
+import signal
 import re
-from collections import defaultdict
 
 
-def print_stats(total_size, status_codes):
+total_size = 0
+status_codes = {
+    '200': 0,
+    '301': 0,
+    '400': 0,
+    '401': 0,
+    '403': 0,
+    '404': 0,
+    '405': 0,
+    '500': 0
+}
+line_count = 0
+
+log_pattern = re.compile(
+    r'^\d+\.\d+\.\d+\.\d+ - \[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+\] "GET /projects/260 HTTP/1\.1" (\d{3}) (\d+)$')
+
+
+def print_stats():
     """
-    Prints the current statistics: total file size
-    and count of each status code
+    print the current statistics
     """
     print(f"File size: {total_size}")
     for code in sorted(status_codes.keys()):
@@ -18,41 +34,35 @@ def print_stats(total_size, status_codes):
             print(f"{code}: {status_codes[code]}")
 
 
-def parse_line(line):
+def signal_handler(sig, frame):
     """
-    Parses a single line of input, returning status code
-    and file size if valid
+    Signal handler for keyboard interruption
     """
-    pattern = r'^\S+ - \[.+\] "GET /projects/260 HTTP/1\.1" (\d+) (\d+)$'
-    match = re.match(pattern, line)
-    if match:
-        return int(match.group(1)), int(match.group(2))
-    return None, None
+    print_stats()
+    sys.exit(0)
 
+signal.signal(signal.SIGINT, signal_handler)
 
-def main():
-    """
-    main function
-    """
-    total_size = 0
-    line_count = 0
-    status_codes = defaultdict(int)
+try:
+    for line in sys.stdin:
+        line = line.strip()
+        match = log_pattern.match(line)
+        
+        if match:
+            status_code = match.group(1)
+            file_size = int(match.group(2))
 
-    try:
-        for line in sys.stdin:
-            status_code, file_size = parse_line(line.strip())
-            if status_code and file_size:
-                total_size += file_size
+            total_size += file_size
+
+            if status_code in status_codes:
                 status_codes[status_code] += 1
-                line_count += 1
+            
+            line_count += 1
 
-                if line_count % 10 == 0:
-                    print_stats(total_size, status_codes)
+            if line_count % 10 == 0:
+                print_stats()
+                
+except Exception as e:
+    sys.stderr.write(f"Error: {e}\n")
 
-    except KeyboardInterrupt:
-        print_stats(total_size, status_codes)
-        raise
-
-
-if __name__ == "__main__":
-    main()
+print_stats()
