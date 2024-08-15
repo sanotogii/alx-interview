@@ -21,8 +21,9 @@ status_codes = {
 line_count = 0
 
 log_pattern = re.compile(
-    r'^\d+\.\d+\.\d+\.\d+ - \[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+\
-        ] "GET /projects/260 HTTP/1\.1" (\d{3}) (\d+)$')
+    r'^\d+\.\d+\.\d+\.\d+ - \[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+\] '
+    r'"GET /projects/260 HTTP/1\.1" (\d{3}) (\d+)$'
+)
 
 
 def print_stats():
