@@ -21,7 +21,8 @@ status_codes = {
 line_count = 0
 
 log_pattern = re.compile(
-    r'^\d+\.\d+\.\d+\.\d+ - \[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+\] "GET /projects/260 HTTP/1\.1" (\d{3}) (\d+)$')
+    r'^\d+\.\d+\.\d+\.\d+ - \[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+\
+        ] "GET /projects/260 HTTP/1\.1" (\d{3}) (\d+)$')
 
 
 def print_stats():
@@ -41,13 +42,14 @@ def signal_handler(sig, frame):
     print_stats()
     sys.exit(0)
 
+
 signal.signal(signal.SIGINT, signal_handler)
 
 try:
     for line in sys.stdin:
         line = line.strip()
         match = log_pattern.match(line)
-        
+
         if match:
             status_code = match.group(1)
             file_size = int(match.group(2))
@@ -56,12 +58,12 @@ try:
 
             if status_code in status_codes:
                 status_codes[status_code] += 1
-            
+
             line_count += 1
 
             if line_count % 10 == 0:
                 print_stats()
-                
+
 except Exception as e:
     sys.stderr.write(f"Error: {e}\n")
 
