@@ -11,7 +11,7 @@ if (!movieId) {
 
 const movieUrl = `https://swapi-api.alx-tools.com/api/films/${movieId}/`;
 
-function getCharacters() {
+function getCharacters () {
   request(movieUrl, { json: true }, (error, response, body) => {
     if (error) {
       console.error('Error fetching movie details:', error.message);
