@@ -1,27 +1,41 @@
 #!/usr/bin/node
 
-const request = require('request-promise');
+const request = require('request');
 
 const movieId = process.argv[2];
 
 if (!movieId) {
-  console.error('Usage: ./0-starwars_characters.js <movie_id>');
+  console.error('Usage: ./0-starwars_characters.js <Movie ID>');
   process.exit(1);
 }
 
 const movieUrl = `https://swapi-api.alx-tools.com/api/films/${movieId}/`;
 
-async function getCharacters () {
-  try {
-    const movieResponse = await request({ uri: movieUrl, json: true });
-
-    for (const characterUrl of movieResponse.characters) {
-      const characterResponse = await request({ uri: characterUrl, json: true });
-      console.log(characterResponse.name);
+function getCharacters() {
+  request(movieUrl, { json: true }, (error, response, body) => {
+    if (error) {
+      console.error('Error fetching movie details:', error.message);
+      return;
     }
-  } catch (error) {
-    console.error('Error fetching details:', error.message);
-  }
+
+    const characterUrls = body.characters;
+    let completedRequests = 0;
+
+    characterUrls.forEach((characterUrl) => {
+      request(characterUrl, { json: true }, (error, response, character) => {
+        if (error) {
+          console.error('Error fetching character details:', error.message);
+        } else {
+          console.log(character.name);
+        }
+
+        completedRequests++;
+        if (completedRequests === characterUrls.length) {
+          process.exit(0);
+        }
+      });
+    });
+  });
 }
 
 getCharacters();
